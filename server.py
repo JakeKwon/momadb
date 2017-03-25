@@ -46,11 +46,12 @@ engine = create_engine(DATABASEURI)
 # Example of running queries in your database
 # Note that this will probably not work if you already have a table named 'test' in your database, containing meaningful data. This is only an example showing you how to run queries in your database using SQLAlchemy.
 #
-engine.execute("""CREATE TABLE IF NOT EXISTS test (
-  id serial,
-  name text
-);""")
-engine.execute("""INSERT INTO test(name) VALUES ('grace hopper'), ('alan turing'), ('ada lovelace');""")
+
+# engine.execute("""CREATE TABLE IF NOT EXISTS test (
+#   id serial,
+#   name text
+# );""")
+# engine.execute("""INSERT INTO test(name) VALUES ('grace hopper'), ('alan turing'), ('ada lovelace');""")
 
 
 @app.before_request
@@ -113,7 +114,7 @@ def index():
   #
   # example of a database query
   #
-  cursor = g.conn.execute("SELECT name FROM test")
+  cursor = g.conn.execute("SELECT name FROM artists_lived")
   names = []
   for result in cursor:
     names.append(result['name'])  # can also be accessed using result[0]
@@ -174,6 +175,20 @@ def add():
   g.conn.execute('INSERT INTO test(name) VALUES (%s)', name)
   return redirect('/')
 
+# -------------------------- 
+#playing around with this one
+@app.route('/get', methods=['GET'])
+def get():
+  name = request.form['name']
+  cursor = g.conn.execute("SELECT gender FROM artists_lived WHERE name=?", name)
+  genders = []
+  for result in cursor:
+    genders.append(result['name'])  # can also be accessed using result[0]
+  cursor.close()
+
+  # name = request.form['name']
+  # g.conn.execute('INSERT INTO artists_lived(name) VALUES (%s)', name)
+  return redirect('/')
 
 @app.route('/login')
 def login():
