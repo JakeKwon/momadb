@@ -21,7 +21,7 @@ from flask import Flask, request, render_template, g, redirect, Response
 
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 app = Flask(__name__, template_folder=tmpl_dir)
-
+DEBUG = True
 
 #
 # The following is a dummy URI that does not connect to a valid database. You will need to modify it to connect to your Part 2 database in order to use the data.
@@ -163,9 +163,15 @@ def index():
 # Notice that the function name is another() rather than index()
 # The functions for each app.route need to have different names
 #
-@app.route('/another')
-def another():
-  return render_template("another.html")
+@app.route('/artists')
+def artists():
+  cursor = g.conn.execute("SELECT name FROM artists_lived")
+  names = []
+  for result in cursor:
+    names.append(result['name'])  # can also be accessed using result[0]
+  cursor.close()
+  context = dict(data = names)
+  return render_template("artists.html", **context)
 
 
 # Example of adding new data to the database
@@ -177,18 +183,32 @@ def add():
 
 # -------------------------- 
 #playing around with this one
-@app.route('/get', methods=['GET'])
+@app.route('/getArtistsInfo', methods=['POST'])
 def get():
   name = request.form['name']
-  cursor = g.conn.execute("SELECT gender FROM artists_lived WHERE name=?", name)
-  genders = []
-  for result in cursor:
-    genders.append(result['name'])  # can also be accessed using result[0]
+  # cursor = g.conn.execute("SELECT * FROM artists_lived a WHERE a.name=%s", name)
+  cursor = g.conn.execute(
+    "SELECT * FROM artists_lived a, featured_in f, exhibitions_exhibited e, artistprofiles_isrec p WHERE a.name=%s AND a.a_id=f.a_id AND f.e_num=e.e_num AND a.a_id = p.a_id", 
+    name)
+  artistsInfo = []
+  print(cursor)
+ 
+  # for result in cursor:
+  #   artistsInfo.append(result['gender'])  # can also be accessed using result[0]
+  #   artistsInfo.append(result['nationality'])
+  artistsInfo = cursor.fetchall()
   cursor.close()
 
   # name = request.form['name']
   # g.conn.execute('INSERT INTO artists_lived(name) VALUES (%s)', name)
-  return redirect('/')
+  context = dict(data = artistsInfo)
+
+
+  #
+  # render_template looks in the templates/ folder for files.
+  # for example, the below file reads template/index.html
+  #
+  return render_template("getArtistsInfo.html", **context)
 
 @app.route('/login')
 def login():
