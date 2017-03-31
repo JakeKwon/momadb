@@ -163,6 +163,11 @@ def index():
 # Notice that the function name is another() rather than index()
 # The functions for each app.route need to have different names
 #
+
+
+
+
+# artists page
 @app.route('/artists')
 def artists():
   cursor = g.conn.execute("SELECT name FROM artists_lived")
@@ -173,6 +178,27 @@ def artists():
   context = dict(data = names)
   return render_template("artists.html", **context)
 
+# curators page
+@app.route('/curators')
+def curators():
+  cursor = g.conn.execute("SELECT name FROM curators_lived")
+  names = []
+  for result in cursor:
+    names.append(result['name'])  # can also be accessed using result[0]
+  cursor.close()
+  context = dict(data = names)
+  return render_template("curators.html", **context)
+
+# exhibitions page
+@app.route('/exhibitions')
+def exhibitions():
+  cursor = g.conn.execute("SELECT title FROM exhibitions_exhibited")
+  names = []
+  for result in cursor:
+    names.append(result['title'])  # can also be accessed using result[0]
+  cursor.close()
+  context = dict(data = names)
+  return render_template("exhibitions.html", **context)
 
 # Example of adding new data to the database
 @app.route('/add', methods=['POST'])
@@ -182,9 +208,8 @@ def add():
   return redirect('/')
 
 # -------------------------- 
-#playing around with this one
 @app.route('/getArtistsInfo', methods=['POST'])
-def get():
+def getArtistsInfo():
   name = request.form['name']
   # cursor = g.conn.execute("SELECT * FROM artists_lived a WHERE a.name=%s", name)
   cursor = g.conn.execute(
@@ -202,13 +227,39 @@ def get():
   # name = request.form['name']
   # g.conn.execute('INSERT INTO artists_lived(name) VALUES (%s)', name)
   context = dict(data = artistsInfo)
-
-
-  #
-  # render_template looks in the templates/ folder for files.
-  # for example, the below file reads template/index.html
-  #
   return render_template("getArtistsInfo.html", **context)
+
+# for searching curators
+@app.route('/getCuratorsInfo', methods=['POST'])
+def getCuratorsInfo():
+  name = request.form['name']
+  # cursor = g.conn.execute("SELECT * FROM artists_lived a WHERE a.name=%s", name)
+  cursor = g.conn.execute(
+    "SELECT * FROM curators_lived c, directed d, exhibitions_exhibited e WHERE c.name=%s AND c.c_id=d.c_id AND d.e_num=e.e_num", 
+    name)
+  curatorsInfo = []
+  print(cursor)
+
+  curatorsInfo = cursor.fetchall()
+  cursor.close()
+  context = dict(data = curatorsInfo)
+  return render_template("getCuratorsInfo.html", **context)
+
+# searching exhibitions
+@app.route('/getExhibitionsInfo', methods=['POST'])
+def getExhibitionsInfo():
+  name = request.form['name']
+  # cursor = g.conn.execute("SELECT * FROM artists_lived a WHERE a.name=%s", name)
+  cursor = g.conn.execute(
+    "SELECT * FROM exhibitions_exhibited e, directed d, curators_lived c, featured_in f, artists_lived a WHERE e.title=%s AND e.e_num=d.e_num AND d.c_id=c.c_id AND e.e_num = f.e_num AND f.a_id=a.a_id", 
+    name)
+  exhibitionsInfo = []
+  print(cursor)
+
+  exhibitionsInfo = cursor.fetchall()
+  cursor.close()
+  context = dict(data = exhibitionsInfo)
+  return render_template("getExhibitionsInfo.html", **context)
 
 @app.route('/login')
 def login():

@@ -1,0 +1,37 @@
+<html>
+  <style>
+    body{ 
+      font-size: 15pt;
+      font-family: arial;
+    }
+  </style>
+
+
+<body>
+  <h1>MOMAEx</h1>
+  <!-- <div>{{data}}</div> -->
+
+  <div>
+    {% for n in data %}
+    <div>{{n.title}}</div>
+    <div>Start Date: {{n.from_}}</div>
+    <div>End Date: {{n.to_}}</div>
+    <div>momaURL: <a href="{{n.momaurl}}">{{n.url}}<a></div>
+    <div>curator who curated {{n.title}}: {{n.name}}</div>
+    <div>artists who were featured in {{n.title}}: {{n.name}}</div>
+    {% endfor %}
+  </div>
+
+<p><a href="artists">Go to artists page</a></p>
+<p><a href="curators">Go to curators page</a></p>
+<p><a href="exhibitions">Go to exhibitions page</a></p>
+
+<h2>look up exhibitions for more info</h2>
+<form method="POST" action="/getExhibitionsInfo">
+<p>search artist: <input type="text" name="name"> <input type="submit" value="getExhibitionsInfo"></p>
+</form>
+
+</body>
+
+
+</html>
