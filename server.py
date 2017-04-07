@@ -18,6 +18,14 @@ import os
 from sqlalchemy import *
 from sqlalchemy.pool import NullPool
 from flask import Flask, request, render_template, g, redirect, Response
+from dateutil.parser import parse
+
+def not_date(string):
+    try: 
+        parse(string)
+        return False
+    except ValueError:
+        return True
 
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 app = Flask(__name__, template_folder=tmpl_dir)
@@ -213,7 +221,7 @@ def getArtistsInfo():
   name = request.form['name']
   # cursor = g.conn.execute("SELECT * FROM artists_lived a WHERE a.name=%s", name)
   cursor = g.conn.execute(
-    "SELECT * FROM artists_lived a, featured_in f, exhibitions_exhibited e, artistprofiles_isrec p WHERE a.name=%s AND a.a_id=f.a_id AND f.e_num=e.e_num AND a.a_id = p.a_id", 
+    "SELECT * FROM artists_lived a, featured_in f, artistprofiles_isrec p WHERE a.name=%s AND a.a_id=f.a_id AND a.a_id = p.a_id", 
     name)
   artistsInfo = []
   print(cursor)
@@ -224,9 +232,16 @@ def getArtistsInfo():
   artistsInfo = cursor.fetchall()
   cursor.close()
 
+  cursor2 = g.conn.execute(
+    "SELECT * FROM artists_lived a, featured_in f, exhibitions_exhibited e, artistprofiles_isrec p WHERE a.name=%s AND a.a_id=f.a_id AND f.e_num=e.e_num AND a.a_id = p.a_id", 
+    name)
+  exhibitionsInfo = []
+  exhibitionsInfo = cursor2.fetchall()
+  cursor2.close()
+
   # name = request.form['name']
   # g.conn.execute('INSERT INTO artists_lived(name) VALUES (%s)', name)
-  context = dict(data = artistsInfo)
+  context = dict(data = artistsInfo, dataExhibits = exhibitionsInfo)
   return render_template("getArtistsInfo.html", **context)
 
 # for searching curators
@@ -235,14 +250,20 @@ def getCuratorsInfo():
   name = request.form['name']
   # cursor = g.conn.execute("SELECT * FROM artists_lived a WHERE a.name=%s", name)
   cursor = g.conn.execute(
-    "SELECT * FROM curators_lived c, directed d, exhibitions_exhibited e WHERE c.name=%s AND c.c_id=d.c_id AND d.e_num=e.e_num", 
+    "SELECT * FROM curators_lived c WHERE c.name=%s", 
     name)
   curatorsInfo = []
-  print(cursor)
-
   curatorsInfo = cursor.fetchall()
   cursor.close()
-  context = dict(data = curatorsInfo)
+  
+  cursorExhibits = g.conn.execute(
+    "SELECT e.title FROM curators_lived c, directed d, exhibitions_exhibited e WHERE c.name=%s AND c.c_id=d.c_id AND d.e_num=e.e_num", 
+    name)
+  curatorsExhibition = []
+  curatorsExhibition = cursorExhibits.fetchall()
+  cursorExhibits.close()
+
+  context = dict(dataInfo = curatorsInfo, dataExhibit = curatorsExhibition)
   return render_template("getCuratorsInfo.html", **context)
 
 # searching exhibitions
@@ -250,16 +271,57 @@ def getCuratorsInfo():
 def getExhibitionsInfo():
   name = request.form['name']
   # cursor = g.conn.execute("SELECT * FROM artists_lived a WHERE a.name=%s", name)
+  # basic info
   cursor = g.conn.execute(
-    "SELECT * FROM exhibitions_exhibited e, directed d, curators_lived c, featured_in f, artists_lived a WHERE e.title=%s AND e.e_num=d.e_num AND d.c_id=c.c_id AND e.e_num = f.e_num AND f.a_id=a.a_id", 
+    "SELECT * FROM exhibitions_exhibited e WHERE e.title=%s", 
     name)
   exhibitionsInfo = []
-  print(cursor)
-
   exhibitionsInfo = cursor.fetchall()
   cursor.close()
-  context = dict(data = exhibitionsInfo)
+
+  # curators featured
+  cursor2 = g.conn.execute(
+    "SELECT c.name FROM exhibitions_exhibited e, directed d, curators_lived c WHERE e.title=%s AND e.e_num=d.e_num AND d.c_id=c.c_id", 
+    name)
+  curatorsFeatured = []
+  curatorsFeatured = cursor2.fetchall()
+  cursor2.close()
+
+  # artists featured
+  cursor3 = g.conn.execute(
+    "SELECT a.name FROM exhibitions_exhibited e, directed d, curators_lived c, featured_in f, artists_lived a WHERE e.title=%s AND e.e_num=d.e_num AND d.c_id=c.c_id AND e.e_num = f.e_num AND f.a_id=a.a_id", 
+    name)
+  artistFeatured = []
+  artistFeatured = cursor3.fetchall()
+  cursor3.close()
+
+  context = dict(data = exhibitionsInfo, dataCurators = curatorsFeatured, dataArtists = artistFeatured)
   return render_template("getExhibitionsInfo.html", **context)
+
+# update exhibitions
+@app.route('/updateExhibitionsInfo', methods=['POST'])
+def updateExhibitionsInfo():
+  title = request.form['title']
+  startDate = request.form['startDate']
+  endDate = request.form['endDate']
+  url = request.form['url']
+  # g.conn.execute('UPDATE exhibitions_exhibited SET title=%s', title)
+  if title=="" or startDate=="" or endDate=="" or url=="":
+    return render_template("dont.html")
+  elif not_date(startDate) or not_date(endDate):
+    return render_template("dateError.html")
+  else:
+    g.conn.execute('INSERT INTO durations (from_, to_) SELECT %s, %s WHERE NOT EXISTS (SELECT from_, to_ FROM durations WHERE from_=%s AND to_=%s)', startDate, endDate, startDate, endDate)
+    # g.conn.execute('INSERT INTO durations VALUES (%s, %s) WHERE NOT EXISTS ( SELECT from_, to_ FROM durations WHERE from_=%s AND to_=%s', startDate, endDate, startDate, endDate)
+    g.conn.execute('UPDATE exhibitions_exhibited SET from_=%s WHERE title = %s', startDate, title)
+    g.conn.execute('UPDATE exhibitions_exhibited SET to_=%s WHERE title = %s', endDate, title)
+    g.conn.execute('UPDATE exhibitions_exhibited SET url=%s WHERE title = %s', url, title)
+    return render_template("updateDone.html")
+
+# delete exhibitions
+
+# create exhibitions
+
 
 @app.route('/login')
 def login():

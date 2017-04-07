@@ -16,8 +16,16 @@
     <div>{{n.title}}</div>
     <div>Start Date: {{n.from_}}</div>
     <div>End Date: {{n.to_}}</div>
-    <div>momaURL: <a href="{{n.momaurl}}">{{n.url}}<a></div>
+    <div>momaURL: {{n.url}}<a></div>
+    {% endfor %}
+  </div>
+  <div>
+    {% for n in dataCurators %}
     <div>curator who curated {{n.title}}: {{n.name}}</div>
+    {% endfor %}
+  </div>
+  <div>
+    {% for n in dataArtists %}
     <div>artists who were featured in {{n.title}}: {{n.name}}</div>
     {% endfor %}
   </div>
@@ -28,7 +36,12 @@
 
 <h2>look up exhibitions for more info</h2>
 <form method="POST" action="/getExhibitionsInfo">
-<p>search artist: <input type="text" name="name"> <input type="submit" value="getExhibitionsInfo"></p>
+<p>search exhibitions: <input type="text" name="name"> <input type="submit" value="getExhibitionsInfo"></p>
+</form>
+
+<h2>Update exhibitions</h2>
+<form method="POST" action="/updateExhibitionsInfo">
+<p>exhibition title: <input type="text" name="title">, start date: <input type="text" name="startDate">, end date: <input type="text" name="endDate">, url: <input type="text" name="url"> <input type="submit" value="updateExhibitionsInfo"></p>
 </form>
 
 </body>

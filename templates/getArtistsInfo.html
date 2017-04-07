@@ -18,11 +18,15 @@
     <div>nationality: {{n.nationality}}</div>
     <div>Birth: {{n.from_}}</div>
     <div>Death: {{n.to_}}</div>
-    <div>exhibition(s) {{n.name}} was exhibited in: {{n.title}}</div>
-    <div>momaURL: <a href="{{n.momaurl}}">{{n.momaurl}}<a></div>
+    <div>momaURL: {{n.momaurl}}<a></div>
     <div>ulanid: {{n.ulanid}}</div>
     <div>wikidataid: {{n.wikidataid}}</div>
     <div>viafid: {{n.viafid}}</div>
+    {% endfor %}
+  </div>
+  <div>
+    {% for n in dataExhibits %}
+    <div>exhibition(s) exhibited in: {{n.title}}</div>
     {% endfor %}
   </div>
 
