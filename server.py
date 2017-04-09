@@ -374,14 +374,12 @@ def createExhibition():
   elif not_date(startDate) or not_date(endDate):
     return render_template("dateError.html")
   else:
-
     g.conn.execute('INSERT INTO durations (from_, to_) SELECT %s, %s WHERE NOT EXISTS (SELECT from_, to_ FROM durations WHERE from_=%s AND to_=%s)', startDate, endDate, startDate, endDate)
     g.conn.execute('INSERT INTO exhibitions_exhibited (e_num, title, url, from_, to_) SELECT %s, %s, %s, %s, %s WHERE NOT EXISTS (SELECT e_num FROM exhibitions_exhibited WHERE e_num=%s)', e_num, title, url, startDate, endDate, e_num)
-    g.conn.execute('INSERT INTO directed (c_id, e_num) SELECT %s, %s', curator, e_num)
-    if artist1 != "":
-     g.conn.execute('INSERT INTO featured_in (a_id, e_num) SELECT %s, %s', artist1, e_num)
+    g.conn.execute('INSERT INTO directed (c_id, e_num) SELECT %s, %s WHERE EXISTS (SELECT c_id FROM curators_lived WHERE c_id=%s)', curator, e_num, curator)
+    g.conn.execute('INSERT INTO featured_in (a_id, e_num) SELECT %s, %s WHERE EXISTS (SELECT a_id FROM artists_lived WHERE a_id=%s)', artist1, e_num, artist1)
     if artist2 != "":
-     g.conn.execute('INSERT INTO featured_in (a_id, e_num) SELECT %s, %s', artist2, e_num)
+     g.conn.execute('INSERT INTO featured_in (a_id, e_num) SELECT %s, %s WHERE EXISTS (SELECT a_id FROM artists_lived WHERE a_id=%s)', artist2, e_num, artist2)
   
 
   # g.conn.execute('INSERT INTO durations (from_, to_) SELECT %s, %s WHERE NOT EXISTS (SELECT from_, to_ FROM durations WHERE from_=%s AND to_=%s)', startDate, endDate, startDate, endDate)
