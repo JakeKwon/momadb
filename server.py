@@ -319,6 +319,21 @@ def updateExhibitionsInfo():
     return render_template("updateDone.html")
 
 # delete exhibitions
+@app.route('/deleteExhibitionsInfo', methods=['POST'])
+def deleteExhibitionsInfo():
+  e_num = request.form['e_num']
+  title = request.form['title']
+  startDate = request.form['startDate']
+  endDate = request.form['endDate']
+  url = request.form['url']
+  # g.conn.execute('UPDATE exhibitions_exhibited SET title=%s', title)
+  if title=="" or startDate=="" or endDate=="" or url=="":
+    return render_template("dont.html")
+  else:
+   g.conn.execute('DELETE FROM directed WHERE e_num=%s', e_num)
+   g.conn.execute('DELETE FROM exhibitions_exhibited WHERE from_=%s AND title=%s', startDate, title)
+   return render_template("updateDone.html")
+
 
 # create exhibitions
 
