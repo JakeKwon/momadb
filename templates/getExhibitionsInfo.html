@@ -33,6 +33,22 @@
 <p><a href="artists">Go to artists page</a></p>
 <p><a href="curators">Go to curators page</a></p>
 <p><a href="exhibitions">Go to exhibitions page</a></p>
+  
+<h2>artists</h2>
+  <div>
+    {% for n in artistsList %}
+    <div>{{n.name}}</div>
+    <div>a_id: {{n.a_id}}</div>
+    {% endfor %}
+  </div> 
+
+<h2>curators</h2>
+  <div>
+    {% for n in curatorsList %}
+    <div>{{n.name}}</div>
+    <div>c_id: {{n.c_id}}</div>
+    {% endfor %}
+  </div> 
 
 <h2>look up exhibitions for more info</h2>
 <form method="POST" action="/getExhibitionsInfo">
@@ -42,6 +58,16 @@
 <h2>Update exhibitions</h2>
 <form method="POST" action="/updateExhibitionsInfo">
 <p>exhibition title: <input type="text" name="title">, start date: <input type="text" name="startDate">, end date: <input type="text" name="endDate">, url: <input type="text" name="url"> <input type="submit" value="updateExhibitionsInfo"></p>
+</form>
+
+<h2>Create exhibitions</h2>
+<form method="POST" action="/createExhibition">
+<p>exhibition number: <input type="text" name="e_num">, exhibition title: <input type="text" name="title">, start date: <input type="text" name="startDate">, end date: <input type="text" name="endDate">, url: <input type="text" name="url">, curator: <input type="text" name="curator">, artists: <input type="text" name="artist1"> <input type="submit" value="createExhibition"></p>
+</form>
+
+<h2>Delete exhibitions</h2>
+<form method="POST" action="/deleteExhibition">
+<p>exhibition title: <input type="text" name="title">, start date: <input type="text" name="startDate">, end date: <input type="text" name="endDate">, url: <input type="text" name="url"> <input type="submit" value="deleteExhibition"></p>
 </form>
 
 </body>
