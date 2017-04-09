@@ -345,6 +345,7 @@ def deleteExhibitionsInfo():
   if e_num=="":
     return render_template("dont.html")
   else:
+   g.conn.execute('DELETE FROM featured_in WHERE e_num=%s', e_num)
    g.conn.execute('DELETE FROM directed WHERE e_num=%s', e_num)
    # g.conn.execute('DELETE FROM exhibitions_exhibited WHERE from_=%s AND title=%s', startDate, title)
    g.conn.execute('DELETE FROM exhibitions_exhibited WHERE e_num=%s', e_num)
@@ -361,6 +362,7 @@ def createExhibition():
   url = request.form['url']
   curator = request.form['curator']
   artist1 = request.form['artist1']
+  artist2 = request.form['artist2']
 
   # if title=="" or startDate=="" or endDate=="" or url=="":
   #   return render_template("dont.html")
@@ -375,7 +377,11 @@ def createExhibition():
 
     g.conn.execute('INSERT INTO durations (from_, to_) SELECT %s, %s WHERE NOT EXISTS (SELECT from_, to_ FROM durations WHERE from_=%s AND to_=%s)', startDate, endDate, startDate, endDate)
     g.conn.execute('INSERT INTO exhibitions_exhibited (e_num, title, url, from_, to_) SELECT %s, %s, %s, %s, %s WHERE NOT EXISTS (SELECT e_num FROM exhibitions_exhibited WHERE e_num=%s)', e_num, title, url, startDate, endDate, e_num)
-    # g.conn.execute('INSERT INTO featured_in (a_id, e_num) SELECT %s, %s', )
+    g.conn.execute('INSERT INTO directed (c_id, e_num) SELECT %s, %s', curator, e_num)
+    if artist1 != "":
+     g.conn.execute('INSERT INTO featured_in (a_id, e_num) SELECT %s, %s', artist1, e_num)
+    if artist2 != "":
+     g.conn.execute('INSERT INTO featured_in (a_id, e_num) SELECT %s, %s', artist2, e_num)
   
 
   # g.conn.execute('INSERT INTO durations (from_, to_) SELECT %s, %s WHERE NOT EXISTS (SELECT from_, to_ FROM durations WHERE from_=%s AND to_=%s)', startDate, endDate, startDate, endDate)
