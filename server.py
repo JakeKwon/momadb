@@ -336,16 +336,18 @@ def updateExhibitionsInfo():
 @app.route('/deleteExhibitionsInfo', methods=['POST'])
 def deleteExhibitionsInfo():
   e_num = request.form['e_num']
-  title = request.form['title']
-  startDate = request.form['startDate']
-  endDate = request.form['endDate']
-  url = request.form['url']
+  # title = request.form['title']
+  # startDate = request.form['startDate']
+  # endDate = request.form['endDate']
+  # url = request.form['url']
+
   # g.conn.execute('UPDATE exhibitions_exhibited SET title=%s', title)
-  if title=="" or startDate=="" or endDate=="" or url=="":
+  if e_num=="":
     return render_template("dont.html")
   else:
    g.conn.execute('DELETE FROM directed WHERE e_num=%s', e_num)
-   g.conn.execute('DELETE FROM exhibitions_exhibited WHERE from_=%s AND title=%s', startDate, title)
+   # g.conn.execute('DELETE FROM exhibitions_exhibited WHERE from_=%s AND title=%s', startDate, title)
+   g.conn.execute('DELETE FROM exhibitions_exhibited WHERE e_num=%s', e_num)
    return render_template("updateDone.html")
 
 
@@ -373,7 +375,9 @@ def createExhibition():
 
     g.conn.execute('INSERT INTO durations (from_, to_) SELECT %s, %s WHERE NOT EXISTS (SELECT from_, to_ FROM durations WHERE from_=%s AND to_=%s)', startDate, endDate, startDate, endDate)
     g.conn.execute('INSERT INTO exhibitions_exhibited (e_num, title, url, from_, to_) SELECT %s, %s, %s, %s, %s WHERE NOT EXISTS (SELECT e_num FROM exhibitions_exhibited WHERE e_num=%s)', e_num, title, url, startDate, endDate, e_num)
-    g.conn.execute('INSERT INTO featured_in (a_id, e_num) SELECT %s, %s', )
+    # g.conn.execute('INSERT INTO featured_in (a_id, e_num) SELECT %s, %s', )
+  
+
   # g.conn.execute('INSERT INTO durations (from_, to_) SELECT %s, %s WHERE NOT EXISTS (SELECT from_, to_ FROM durations WHERE from_=%s AND to_=%s)', startDate, endDate, startDate, endDate)
   # g.conn.execute('UPDATE exhibitions_exhibited SET from_=%s WHERE title = %s AND EXISTS (SELECT from_, to_ FROM durations WHERE from_=%s AND to_=%s)', startDate, title, startDate, endDate)
   # g.conn.execute('UPDATE exhibitions_exhibited SET to_=%s WHERE title = %s AND EXISTS (SELECT from_, to_ FROM durations WHERE from_=%s AND to_=%s)', endDate, title, startDate, endDate)
