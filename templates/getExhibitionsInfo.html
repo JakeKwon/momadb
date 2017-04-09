@@ -13,6 +13,7 @@
 
   <div>
     {% for n in data %}
+    <div>Exhibition #: {{n.e_num}}</div>
     <div>{{n.title}}</div>
     <div>Start Date: {{n.from_}}</div>
     <div>End Date: {{n.to_}}</div>
@@ -21,12 +22,12 @@
   </div>
   <div>
     {% for n in dataCurators %}
-    <div>curator who curated {{n.title}}: {{n.name}}</div>
+    <div>curator who curated{{n.title}}: {{n.name}}</div>
     {% endfor %}
   </div>
   <div>
     {% for n in dataArtists %}
-    <div>artists who were featured in {{n.title}}: {{n.name}}</div>
+    <div>artists who were featured in{{n.title}}: {{n.name}}</div>
     {% endfor %}
   </div>
 
@@ -66,8 +67,9 @@
 </form>
 
 <h2>Delete exhibitions</h2>
-<form method="POST" action="/deleteExhibition">
-<p>exhibition title: <input type="text" name="title">, start date: <input type="text" name="startDate">, end date: <input type="text" name="endDate">, url: <input type="text" name="url"> <input type="submit" value="deleteExhibition"></p>
+<form method="POST" action="/deleteExhibitionsInfo">
+<p>exhibition #: <input type="text" name="e_num">, exhibition title: <input type="text" name="title">, start date: <input type="text" name="startDate">, end date: <input type="text" name="endDate">, url: <input type="text" name="url"> <input type="submit" value="deleteExhibitionsInfo"></p>
+
 </form>
 
 </body>
