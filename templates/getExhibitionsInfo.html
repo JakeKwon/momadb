@@ -58,13 +58,28 @@
 
 <h2>Update title</h2>
 <form method="POST" action="/updateExhibitionsTitle">
-<p>exhibition #: <input type="text" name="e_num">, exhibition title: <input type="text" name="title"> <input type="submit" value="updateExhibitionsTitle"></p>
+<p>exhibition #: <input type="text" name="e_num">, new exhibition title: <input type="text" name="title"> <input type="submit" value="updateExhibitionsTitle"></p>
 </form>
 
-<h2>Update exhibitions</h2>
+<h2>Update start date</h2>
+<form method="POST" action="/updateExhibitionsFrom">
+<p>exhibition #: <input type="text" name="e_num">, new start date: <input type="text" name="startDate"> <input type="submit" value="updateExhibitionsFrom"></p>
+</form>
+
+<h2>Update end date</h2>
+<form method="POST" action="/updateExhibitionsTo">
+<p>exhibition #: <input type="text" name="e_num">, new end date: <input type="text" name="endDate"> <input type="submit" value="updateExhibitionsTo"></p>
+</form>
+
+<h2>Update url</h2>
+<form method="POST" action="/updateExhibitionsUrl">
+<p>exhibition #: <input type="text" name="e_num">, new url: <input type="text" name="url"> <input type="submit" value="updateExhibitionsUrl"></p>
+</form>
+
+<!-- <h2>Update exhibitions</h2>
 <form method="POST" action="/updateExhibitionsInfo">
 <p>exhibition title: <input type="text" name="title">, start date: <input type="text" name="startDate">, end date: <input type="text" name="endDate">, url: <input type="text" name="url"> <input type="submit" value="updateExhibitionsInfo"></p>
-</form>
+</form> -->
 
 <h2>Create exhibitions</h2>
 <form method="POST" action="/createExhibition">
