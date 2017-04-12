@@ -9,12 +9,13 @@
 
 <body>
   <h1>MOMAEx</h1>
+  <h2><i>Search results</i></h2>
   <!-- <div>{{data}}</div> -->
 
   <div>
     {% for n in data %}
+    <div><b>{{n.title}}</b></div>
     <div>Exhibition #: {{n.e_num}}</div>
-    <div>{{n.title}}</div>
     <div>Start Date: {{n.from_}}</div>
     <div>End Date: {{n.to_}}</div>
     <div>momaURL: {{n.url}}<a></div>
@@ -22,12 +23,12 @@
   </div>
   <div>
     {% for n in dataCurators %}
-    <div>curator who curated{{n.title}}: {{n.name}}</div>
+    <div>curator{{n.title}}: {{n.name}}</div>
     {% endfor %}
   </div>
   <div>
     {% for n in dataArtists %}
-    <div>artists who were featured in{{n.title}}: {{n.name}}</div>
+    <div>artist who was featured in{{n.title}}: {{n.name}}</div>
     {% endfor %}
   </div>
 
@@ -35,43 +36,45 @@
 <p><a href="curators">Go to curators page</a></p>
 <p><a href="exhibitions">Go to exhibitions page</a></p>
   
-<h2>artists</h2>
+<table width="800" cellpadding="5" cellspacing="10">
+<tr><td>  
+<h2>MOMAEx Artists</h2>
   <div>
     {% for n in artistsList %}
     <div>{{n.name}}</div>
     <div>a_id: {{n.a_id}}</div>
     {% endfor %}
-  </div> 
+  </div> </td>
 
-<h2>curators</h2>
+<td><h2>MOMAEx Curators</h2>
   <div>
     {% for n in curatorsList %}
     <div>{{n.name}}</div>
     <div>c_id: {{n.c_id}}</div>
     {% endfor %}
-  </div> 
+  </div> </td></tr></table>
 
 <h2>look up exhibitions for more info</h2>
 <form method="POST" action="/getExhibitionsInfo">
 <p>search exhibitions: <input type="text" name="name"> <input type="submit" value="getExhibitionsInfo"></p>
 </form>
 
-<h2>Update title</h2>
+<h2>Update exhibition title</h2>
 <form method="POST" action="/updateExhibitionsTitle">
 <p>exhibition #: <input type="text" name="e_num">, new exhibition title: <input type="text" name="title"> <input type="submit" value="updateExhibitionsTitle"></p>
 </form>
 
-<h2>Update start date</h2>
+<h2>Update exhibition start date</h2>
 <form method="POST" action="/updateExhibitionsFrom">
 <p>exhibition #: <input type="text" name="e_num">, new start date: <input type="text" name="startDate"> <input type="submit" value="updateExhibitionsFrom"></p>
 </form>
 
-<h2>Update end date</h2>
+<h2>Update exhibition end date</h2>
 <form method="POST" action="/updateExhibitionsTo">
 <p>exhibition #: <input type="text" name="e_num">, new end date: <input type="text" name="endDate"> <input type="submit" value="updateExhibitionsTo"></p>
 </form>
 
-<h2>Update url</h2>
+<h2>Update exhibition url</h2>
 <form method="POST" action="/updateExhibitionsUrl">
 <p>exhibition #: <input type="text" name="e_num">, new url: <input type="text" name="url"> <input type="submit" value="updateExhibitionsUrl"></p>
 </form>
@@ -82,17 +85,14 @@
 </form> -->
 
 
-<h2>Create exhibitions</h2><font size="-1">please include at least 1 artist</font>
+<h2>Create an exhibition</h2>
 <form method="POST" action="/createExhibition">
-<p>exhibition number: <input type="text" name="e_num">, exhibition title: <input type="text" name="title">, start date: <input type="text" name="startDate">, end date: <input type="text" name="endDate">, url: <input type="text" name="url">, curator's id: <input type="text" name="curator">, artist 1 id: <input type="text" name="artist1">,  artist 2 id: <input type="text" name="artist2">, artist 3 id: <input type="text" name="artist3"> <input type="submit" value="createExhibition"></p>
+<p>exhibition number: <input type="text" name="e_num"><br> exhibition title: <input type="text" name="title"><br> start date: <input type="text" name="startDate"><br> end date: <input type="text" name="endDate"><br> url: <input type="text" name="url"><br> curator's id: <input type="text" name="curator"><br><font size="-1">---please include at least one artist---</font><br> artist 1 id: <input type="text" name="artist1"><br>  artist 2 id: <input type="text" name="artist2"><br>artist 3 id: <input type="text" name="artist3"> <input type="submit" value="createExhibition"></p>
 </form>
 
-<h2>Delete exhibitions</h2>
+<h2>Delete an exhibition</h2>
 <form method="POST" action="/deleteExhibitionsInfo">
-<p>exhibition #: <input type="text" name="e_num">
-  <!-- , exhibition title: <input type="text" name="title">, start date: <input type="text" name="startDate">, end date: <input type="text" name="endDate">, url: <input type="text" name="url"> 
- -->
-  <input type="submit" value="deleteExhibitionsInfo"></p>
+<p>exhibition #: <input type="text" name="e_num"> <input type="submit" value="deleteExhibitions"></p>
 </form>
 
 </body>

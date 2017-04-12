@@ -319,14 +319,9 @@ def updateExhibitionsTitle():
 
   if e_num=="" or title=="":
     return render_template("dont.html")
-  # elif not_date(startDate) or not_date(endDate):
-  #   return render_template("dateError.html")
   else:
-    # g.conn.execute('INSERT INTO durations (from_, to_) SELECT %s, %s WHERE NOT EXISTS (SELECT from_, to_ FROM durations WHERE from_=%s AND to_=%s)', startDate, endDate, startDate, endDate)
     g.conn.execute('UPDATE exhibitions_exhibited SET title=%s WHERE e_num = %s', title, e_num)
-    # g.conn.execute('UPDATE exhibitions_exhibited SET to_=%s WHERE title = %s AND EXISTS (SELECT from_, to_ FROM durations WHERE from_=%s AND to_=%s)', endDate, title, startDate, endDate)
-    # g.conn.execute('UPDATE exhibitions_exhibited SET url=%s WHERE title = %s AND EXISTS (SELECT from_, to_ FROM durations WHERE from_=%s AND to_=%s)', url, title, startDate, endDate)
-  return render_template("updateDone.html")
+  return render_template("updateExhibitionDone.html")
 
 # update exhibition start date
 @app.route('/updateExhibitionsFrom', methods=['POST'])
@@ -345,12 +340,9 @@ def updateExhibitionsFrom():
   elif startDate > endDate:
     return render_template("dateError.html")
   else:
-    # endDate = g.conn.execute("SELECT to_ FROM exhibitions_exhibited e WHERE e.e_num=%s", e_num)
     g.conn.execute('INSERT INTO durations (from_, to_) SELECT %s, (SELECT to_ FROM exhibitions_exhibited e WHERE e.e_num=%s) WHERE NOT EXISTS (SELECT from_, to_ FROM durations WHERE from_=%s AND to_=(SELECT to_ FROM exhibitions_exhibited e WHERE e.e_num=%s))', userStartDate, e_num, userStartDate, e_num)
     g.conn.execute('UPDATE exhibitions_exhibited SET from_=%s WHERE e_num = %s', userStartDate, e_num)
-    # g.conn.execute('UPDATE exhibitions_exhibited SET to_=%s WHERE title = %s AND EXISTS (SELECT from_, to_ FROM durations WHERE from_=%s AND to_=%s)', endDate, title, startDate, endDate)
-    # g.conn.execute('UPDATE exhibitions_exhibited SET url=%s WHERE title = %s AND EXISTS (SELECT from_, to_ FROM durations WHERE from_=%s AND to_=%s)', url, title, startDate, endDate)
-  return render_template("updateDone.html")
+  return render_template("updateExhibitionDone.html")
 
 # update exhibition end date
 @app.route('/updateExhibitionsTo', methods=['POST'])
@@ -373,7 +365,7 @@ def updateExhibitionsTo():
     g.conn.execute('UPDATE exhibitions_exhibited SET to_=%s WHERE e_num = %s', userEndDate, e_num)
     # g.conn.execute('UPDATE exhibitions_exhibited SET to_=%s WHERE title = %s AND EXISTS (SELECT from_, to_ FROM durations WHERE from_=%s AND to_=%s)', endDate, title, startDate, endDate)
     # g.conn.execute('UPDATE exhibitions_exhibited SET url=%s WHERE title = %s AND EXISTS (SELECT from_, to_ FROM durations WHERE from_=%s AND to_=%s)', url, title, startDate, endDate)
-  return render_template("updateDone.html")
+  return render_template("updateExhibitionDone.html")
 
 # update exhibition url
 @app.route('/updateExhibitionsUrl', methods=['POST'])
@@ -391,7 +383,7 @@ def updateExhibitionsUrl():
     g.conn.execute('UPDATE exhibitions_exhibited SET url=%s WHERE e_num = %s', url, e_num)
     # g.conn.execute('UPDATE exhibitions_exhibited SET to_=%s WHERE title = %s AND EXISTS (SELECT from_, to_ FROM durations WHERE from_=%s AND to_=%s)', endDate, title, startDate, endDate)
     # g.conn.execute('UPDATE exhibitions_exhibited SET url=%s WHERE title = %s AND EXISTS (SELECT from_, to_ FROM durations WHERE from_=%s AND to_=%s)', url, title, startDate, endDate)
-  return render_template("updateDone.html")
+  return render_template("updateExhibitionDone.html")
 
 # delete exhibitions
 @app.route('/deleteExhibitionsInfo', methods=['POST'])
@@ -404,7 +396,7 @@ def deleteExhibitionsInfo():
    g.conn.execute('DELETE FROM featured_in WHERE e_num=%s', e_num)
    g.conn.execute('DELETE FROM directed WHERE e_num=%s', e_num)
    g.conn.execute('DELETE FROM exhibitions_exhibited WHERE e_num=%s', e_num)
-   return render_template("updateDone.html")
+   return render_template("deleteExhibitionDone.html")
 
 
 # create exhibitions
