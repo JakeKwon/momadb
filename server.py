@@ -14,11 +14,13 @@ A debugger such as "pdb" may be helpful for debugging.
 Read about it online.
 """
 
+import pdb
 import os
 from sqlalchemy import *
 from sqlalchemy.pool import NullPool
 from flask import Flask, request, render_template, g, redirect, Response
 from dateutil.parser import parse
+from datetime import datetime
 
 def not_date(string):
     try: 
@@ -219,16 +221,12 @@ def add():
 @app.route('/getArtistsInfo', methods=['POST'])
 def getArtistsInfo():
   name = request.form['name']
-  # cursor = g.conn.execute("SELECT * FROM artists_lived a WHERE a.name=%s", name)
   cursor = g.conn.execute(
-    "SELECT * FROM artists_lived a, featured_in f, artistprofiles_isrec p WHERE a.name=%s AND a.a_id=f.a_id AND a.a_id = p.a_id", 
+    "SELECT * FROM artists_lived a, artistprofiles_isrec p WHERE a.name=%s AND a.a_id = p.a_id", 
     name)
   artistsInfo = []
   print(cursor)
  
-  # for result in cursor:
-  #   artistsInfo.append(result['gender'])  # can also be accessed using result[0]
-  #   artistsInfo.append(result['nationality'])
   artistsInfo = cursor.fetchall()
   cursor.close()
 
@@ -239,8 +237,6 @@ def getArtistsInfo():
   exhibitionsInfo = cursor2.fetchall()
   cursor2.close()
 
-  # name = request.form['name']
-  # g.conn.execute('INSERT INTO artists_lived(name) VALUES (%s)', name)
   context = dict(data = artistsInfo, dataExhibits = exhibitionsInfo)
   return render_template("getArtistsInfo.html", **context)
 
@@ -336,19 +332,22 @@ def updateExhibitionsTitle():
 @app.route('/updateExhibitionsFrom', methods=['POST'])
 def updateExhibitionsFrom():
   e_num = request.form['e_num']
-  startDate = request.form['startDate']
-  # startDate = request.form['startDate']
-  # endDate = request.form['endDate']
-  # url = request.form['url']
+  userStartDate = request.form['startDate']
+  queryResult = g.conn.execute('SELECT to_ FROM exhibitions_exhibited e WHERE e.e_num=%s', e_num)
+  startDate = datetime.strptime(userStartDate, "%Y-%m-%d").date()
+  rows = queryResult.fetchall()
+  endDate = rows[0][0]
 
-  if e_num=="" or startDate=="":
+  if e_num=="" or userStartDate=="":
     return render_template("dont.html")
-  elif not_date(startDate):
+  elif not_date(userStartDate):
+    return render_template("dateError.html")
+  elif startDate > endDate:
     return render_template("dateError.html")
   else:
     # endDate = g.conn.execute("SELECT to_ FROM exhibitions_exhibited e WHERE e.e_num=%s", e_num)
-    g.conn.execute('INSERT INTO durations (from_, to_) SELECT %s, (SELECT to_ FROM exhibitions_exhibited e WHERE e.e_num=%s) WHERE NOT EXISTS (SELECT from_, to_ FROM durations WHERE from_=%s AND to_=(SELECT to_ FROM exhibitions_exhibited e WHERE e.e_num=%s))', startDate, e_num, startDate, e_num)
-    g.conn.execute('UPDATE exhibitions_exhibited SET from_=%s WHERE e_num = %s', startDate, e_num)
+    g.conn.execute('INSERT INTO durations (from_, to_) SELECT %s, (SELECT to_ FROM exhibitions_exhibited e WHERE e.e_num=%s) WHERE NOT EXISTS (SELECT from_, to_ FROM durations WHERE from_=%s AND to_=(SELECT to_ FROM exhibitions_exhibited e WHERE e.e_num=%s))', userStartDate, e_num, userStartDate, e_num)
+    g.conn.execute('UPDATE exhibitions_exhibited SET from_=%s WHERE e_num = %s', userStartDate, e_num)
     # g.conn.execute('UPDATE exhibitions_exhibited SET to_=%s WHERE title = %s AND EXISTS (SELECT from_, to_ FROM durations WHERE from_=%s AND to_=%s)', endDate, title, startDate, endDate)
     # g.conn.execute('UPDATE exhibitions_exhibited SET url=%s WHERE title = %s AND EXISTS (SELECT from_, to_ FROM durations WHERE from_=%s AND to_=%s)', url, title, startDate, endDate)
   return render_template("updateDone.html")
@@ -357,18 +356,21 @@ def updateExhibitionsFrom():
 @app.route('/updateExhibitionsTo', methods=['POST'])
 def updateExhibitionsTo():
   e_num = request.form['e_num']
-  endDate = request.form['endDate']
-  # startDate = request.form['startDate']
-  # endDate = request.form['endDate']
-  # url = request.form['url']
+  userEndDate = request.form['endDate']
+  queryResult = g.conn.execute('SELECT from_ FROM exhibitions_exhibited e WHERE e.e_num=%s', e_num) 
+  endDate = datetime.strptime(userEndDate, "%Y-%m-%d").date()
+  rows = queryResult.fetchall()
+  startDate = rows[0][0]
 
-  if e_num=="" or endDate=="":
+  if e_num=="" or userEndDate=="":
     return render_template("dont.html")
-  elif not_date(endDate):
+  elif not_date(userEndDate):
+    return render_template("dateError.html")
+  elif startDate > endDate:
     return render_template("dateError.html")
   else:
-    g.conn.execute('INSERT INTO durations (from_, to_) SELECT (SELECT from_ FROM exhibitions_exhibited e WHERE e.e_num=%s), %s WHERE NOT EXISTS (SELECT from_, to_ FROM durations WHERE from_=(SELECT from_ FROM exhibitions_exhibited e WHERE e.e_num=%s) AND to_=%s)', e_num, endDate, e_num, endDate)
-    g.conn.execute('UPDATE exhibitions_exhibited SET to_=%s WHERE e_num = %s', endDate, e_num)
+    g.conn.execute('INSERT INTO durations (from_, to_) SELECT (SELECT from_ FROM exhibitions_exhibited e WHERE e.e_num=%s), %s WHERE NOT EXISTS (SELECT from_, to_ FROM durations WHERE from_=(SELECT from_ FROM exhibitions_exhibited e WHERE e.e_num=%s) AND to_=%s)', e_num, userEndDate, e_num, userEndDate)
+    g.conn.execute('UPDATE exhibitions_exhibited SET to_=%s WHERE e_num = %s', userEndDate, e_num)
     # g.conn.execute('UPDATE exhibitions_exhibited SET to_=%s WHERE title = %s AND EXISTS (SELECT from_, to_ FROM durations WHERE from_=%s AND to_=%s)', endDate, title, startDate, endDate)
     # g.conn.execute('UPDATE exhibitions_exhibited SET url=%s WHERE title = %s AND EXISTS (SELECT from_, to_ FROM durations WHERE from_=%s AND to_=%s)', url, title, startDate, endDate)
   return render_template("updateDone.html")
@@ -395,18 +397,12 @@ def updateExhibitionsUrl():
 @app.route('/deleteExhibitionsInfo', methods=['POST'])
 def deleteExhibitionsInfo():
   e_num = request.form['e_num']
-  # title = request.form['title']
-  # startDate = request.form['startDate']
-  # endDate = request.form['endDate']
-  # url = request.form['url']
 
-  # g.conn.execute('UPDATE exhibitions_exhibited SET title=%s', title)
   if e_num=="":
     return render_template("dont.html")
   else:
    g.conn.execute('DELETE FROM featured_in WHERE e_num=%s', e_num)
    g.conn.execute('DELETE FROM directed WHERE e_num=%s', e_num)
-   # g.conn.execute('DELETE FROM exhibitions_exhibited WHERE from_=%s AND title=%s', startDate, title)
    g.conn.execute('DELETE FROM exhibitions_exhibited WHERE e_num=%s', e_num)
    return render_template("updateDone.html")
 
@@ -422,12 +418,8 @@ def createExhibition():
   curator = request.form['curator']
   artist1 = request.form['artist1']
   artist2 = request.form['artist2']
+  artist3 = request.form['artist3']
 
-  # if title=="" or startDate=="" or endDate=="" or url=="":
-  #   return render_template("dont.html")
-  # elif not_date(startDate) or not_date(endDate):
-  #   return render_template("dateError.html")
-  # else:
   if e_num=="" or title=="" or startDate=="" or endDate=="" or url=="" or curator=="" or artist1=="":
     return render_template("dont.html")
   elif not_date(startDate) or not_date(endDate):
@@ -439,7 +431,8 @@ def createExhibition():
     g.conn.execute('INSERT INTO featured_in (a_id, e_num) SELECT %s, %s WHERE EXISTS (SELECT a_id FROM artists_lived WHERE a_id=%s)', artist1, e_num, artist1)
     if artist2 != "":
      g.conn.execute('INSERT INTO featured_in (a_id, e_num) SELECT %s, %s WHERE EXISTS (SELECT a_id FROM artists_lived WHERE a_id=%s)', artist2, e_num, artist2)
-  
+    if artist3 != "":
+     g.conn.execute('INSERT INTO featured_in (a_id, e_num) SELECT %s, %s WHERE EXISTS (SELECT a_id FROM artists_lived WHERE a_id=%s)', artist3, e_num, artist3)
 
   # g.conn.execute('INSERT INTO durations (from_, to_) SELECT %s, %s WHERE NOT EXISTS (SELECT from_, to_ FROM durations WHERE from_=%s AND to_=%s)', startDate, endDate, startDate, endDate)
   # g.conn.execute('UPDATE exhibitions_exhibited SET from_=%s WHERE title = %s AND EXISTS (SELECT from_, to_ FROM durations WHERE from_=%s AND to_=%s)', startDate, title, startDate, endDate)
