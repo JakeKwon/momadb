@@ -220,15 +220,22 @@ def add():
 # -------------------------- 
 @app.route('/getArtistsInfo', methods=['POST'])
 def getArtistsInfo():
+ # pdb.set_trace()
   name = request.form['name']
   cursor = g.conn.execute(
-    "SELECT * FROM artists_lived a, artistprofiles_isrec p WHERE a.name=%s AND a.a_id = p.a_id", 
+    "SELECT * FROM artists_lived a WHERE a.name=%s", 
     name)
   artistsInfo = []
   print(cursor)
- 
   artistsInfo = cursor.fetchall()
   cursor.close()
+
+  cursor3 = g.conn.execute(
+    "SELECT * FROM artistprofiles_isrec p WHERE p.a_id = (SELECT a_id FROM artists_lived a WHERE a.name=%s)",
+    name)
+  artistProfilesInfo = []
+  artistProfilesInfo = cursor3.fetchall()
+  cursor3.close()
 
   cursor2 = g.conn.execute(
     "SELECT * FROM artists_lived a, featured_in f, exhibitions_exhibited e, artistprofiles_isrec p WHERE a.name=%s AND a.a_id=f.a_id AND f.e_num=e.e_num AND a.a_id = p.a_id", 
@@ -237,7 +244,7 @@ def getArtistsInfo():
   exhibitionsInfo = cursor2.fetchall()
   cursor2.close()
 
-  context = dict(data = artistsInfo, dataExhibits = exhibitionsInfo)
+  context = dict(data = artistsInfo, dataAProfiles = artistProfilesInfo, dataExhibits = exhibitionsInfo)
   return render_template("getArtistsInfo.html", **context)
 
 # for searching curators
@@ -372,9 +379,6 @@ def updateExhibitionsTo():
 def updateExhibitionsUrl():
   e_num = request.form['e_num']
   url = request.form['url']
-  # startDate = request.form['startDate']
-  # endDate = request.form['endDate']
-  # url = request.form['url']
 
   if e_num=="" or url=="":
     return render_template("dont.html")
@@ -389,6 +393,8 @@ def updateExhibitionsUrl():
 @app.route('/deleteExhibitionsInfo', methods=['POST'])
 def deleteExhibitionsInfo():
   e_num = request.form['e_num']
+  startDate = request.form['startDate']
+  endDate = request.form['endDate']
 
   if e_num=="":
     return render_template("dont.html")
@@ -396,6 +402,7 @@ def deleteExhibitionsInfo():
    g.conn.execute('DELETE FROM featured_in WHERE e_num=%s', e_num)
    g.conn.execute('DELETE FROM directed WHERE e_num=%s', e_num)
    g.conn.execute('DELETE FROM exhibitions_exhibited WHERE e_num=%s', e_num)
+   g.conn.execute('DELETE FROM durations WHERE from_=%s AND to_=%s', startDate, endDate)
    return render_template("deleteExhibitionDone.html")
 
 
@@ -404,21 +411,25 @@ def deleteExhibitionsInfo():
 def createExhibition():
   e_num = request.form['e_num']
   title = request.form['title']
-  startDate = request.form['startDate']
-  endDate = request.form['endDate']
+  userStartDate = request.form['startDate']
   url = request.form['url']
   curator = request.form['curator']
   artist1 = request.form['artist1']
   artist2 = request.form['artist2']
   artist3 = request.form['artist3']
+  userEndDate = request.form['endDate']
+  endDate = datetime.strptime(userEndDate, "%Y-%m-%d").date()
+  startDate = datetime.strptime(userStartDate, "%Y-%m-%d").date()
 
   if e_num=="" or title=="" or startDate=="" or endDate=="" or url=="" or curator=="" or artist1=="":
     return render_template("dont.html")
   elif not_date(startDate) or not_date(endDate):
     return render_template("dateError.html")
+  elif startDate > endDate:
+    return render_template("dateError.html")
   else:
-    g.conn.execute('INSERT INTO durations (from_, to_) SELECT %s, %s WHERE NOT EXISTS (SELECT from_, to_ FROM durations WHERE from_=%s AND to_=%s)', startDate, endDate, startDate, endDate)
-    g.conn.execute('INSERT INTO exhibitions_exhibited (e_num, title, url, from_, to_) SELECT %s, %s, %s, %s, %s WHERE NOT EXISTS (SELECT e_num FROM exhibitions_exhibited WHERE e_num=%s)', e_num, title, url, startDate, endDate, e_num)
+    g.conn.execute('INSERT INTO durations (from_, to_) SELECT %s, %s WHERE NOT EXISTS (SELECT from_, to_ FROM durations WHERE from_=%s AND to_=%s)', userStartDate, userEndDate, userStartDate, userEndDate)
+    g.conn.execute('INSERT INTO exhibitions_exhibited (e_num, title, url, from_, to_) SELECT %s, %s, %s, %s, %s WHERE NOT EXISTS (SELECT e_num FROM exhibitions_exhibited WHERE e_num=%s)', e_num, title, url, userStartDate, userEndDate, e_num)
     g.conn.execute('INSERT INTO directed (c_id, e_num) SELECT %s, %s WHERE EXISTS (SELECT c_id FROM curators_lived WHERE c_id=%s)', curator, e_num, curator)
     g.conn.execute('INSERT INTO featured_in (a_id, e_num) SELECT %s, %s WHERE EXISTS (SELECT a_id FROM artists_lived WHERE a_id=%s)', artist1, e_num, artist1)
     if artist2 != "":
@@ -426,12 +437,111 @@ def createExhibition():
     if artist3 != "":
      g.conn.execute('INSERT INTO featured_in (a_id, e_num) SELECT %s, %s WHERE EXISTS (SELECT a_id FROM artists_lived WHERE a_id=%s)', artist3, e_num, artist3)
 
-  # g.conn.execute('INSERT INTO durations (from_, to_) SELECT %s, %s WHERE NOT EXISTS (SELECT from_, to_ FROM durations WHERE from_=%s AND to_=%s)', startDate, endDate, startDate, endDate)
-  # g.conn.execute('UPDATE exhibitions_exhibited SET from_=%s WHERE title = %s AND EXISTS (SELECT from_, to_ FROM durations WHERE from_=%s AND to_=%s)', startDate, title, startDate, endDate)
-  # g.conn.execute('UPDATE exhibitions_exhibited SET to_=%s WHERE title = %s AND EXISTS (SELECT from_, to_ FROM durations WHERE from_=%s AND to_=%s)', endDate, title, startDate, endDate)
-  # g.conn.execute('UPDATE exhibitions_exhibited SET url=%s WHERE title = %s AND EXISTS (SELECT from_, to_ FROM durations WHERE from_=%s AND to_=%s)', url, title, startDate, endDate)
+  return render_template("createExhibitionDone.html")
+
+
+@app.route('/addArtist', methods=['POST'])
+def addArtist():  
+  a_id = request.form['a_id']
+  name = request.form['name']
+  birth = request.form['birth']
+  death = request.form['death']
+  gender = request.form['gender']
+  nationality = request.form['nationality']
+  endDate = datetime.strptime(death, "%Y-%m-%d").date()
+  startDate = datetime.strptime(birth, "%Y-%m-%d").date()
+  momaurl = request.form['momaurl']
+  ulanid = request.form['ulanid']
+  wikidataid = request.form['wikidataid']
+  viafid = request.form['viafid']
   
-  return render_template("updateDone.html")
+  if a_id=="" or name=="" or birth=="" or death=="":
+    return render_template("dont.html")
+  elif not_date(birth) or not_date(death):
+    return render_template("dont.html")
+  elif startDate > endDate:
+    return render_template("dont.html")
+  else:
+    g.conn.execute('INSERT INTO durations (from_, to_) SELECT %s, %s WHERE NOT EXISTS (SELECT from_, to_ FROM durations d WHERE d.from_=%s AND d.to_=%s)', birth, death, birth, death)
+    g.conn.execute('INSERT INTO artists_lived (a_id, name, gender, nationality, from_, to_) SELECT %s, %s, %s, %s, %s, %s WHERE NOT EXISTS (SELECT a_id FROM artists_lived a WHERE a.a_id=%s)', a_id, name, gender, nationality, birth, death, a_id)
+    if momaurl !="" or ulanid !="" or wikidataid !="" or viafid !="":
+      g.conn.execute('INSERT INTO artistprofiles_isrec (momaurl, ulanid, wikidataid, viafid, a_id) SELECT %s, %s, %s, %s, %s WHERE NOT EXISTS (SELECT a_id FROM artistprofiles_isrec WHERE a_id=%s)', momaurl, ulanid, wikidataid, viafid, a_id, a_id)
+  return render_template("addArtistDone.html")
+
+# delete artist
+@app.route('/deleteArtist', methods=['POST'])
+def deleteArtist():
+  a_id = request.form['a_id']
+  birthdate = request.form['birthdate']
+  deathdate = request.form['deathdate']
+
+  if a_id=="":
+    return render_template("dont.html")
+  else:
+   g.conn.execute('DELETE FROM featured_in WHERE a_id=%s', a_id)
+   g.conn.execute('DELETE FROM artistprofiles_isrec WHERE a_id=%s', a_id)
+   g.conn.execute('DELETE FROM artists_lived WHERE a_id=%s', a_id)
+   g.conn.execute('DELETE FROM durations WHERE from_=%s AND to_=%s', birthdate, deathdate)
+   return render_template("deleteArtistDone.html")
+
+# add curator
+@app.route('/addCurator', methods=['POST'])
+def addCurator():  
+  c_id = request.form['a_id']
+  name = request.form['name']
+  birth = request.form['birth']
+  death = request.form['death']
+  gender = request.form['gender']
+  nationality = request.form['nationality']
+  endDate = datetime.strptime(death, "%Y-%m-%d").date()
+  startDate = datetime.strptime(birth, "%Y-%m-%d").date()
+  
+  if c_id=="" or name=="" or birth=="" or death=="":
+    return render_template("dont.html")
+  elif not_date(birth) or not_date(death):
+    return render_template("dont.html")
+  elif startDate > endDate:
+    return render_template("dont.html")
+  else:
+    g.conn.execute('INSERT INTO durations (from_, to_) SELECT %s, %s WHERE NOT EXISTS (SELECT from_, to_ FROM durations d WHERE d.from_=%s AND d.to_=%s)', birth, death, birth, death)
+    g.conn.execute('INSERT INTO curators_lived (c_id, name, gender, nationality, from_, to_) SELECT %s, %s, %s, %s, %s, %s WHERE NOT EXISTS (SELECT c_id FROM curators_lived c WHERE c.c_id=%s)', c_id, name, gender, nationality, birth, death, c_id)
+  return render_template("addCuratorDone.html")
+
+# delete curator
+@app.route('/deleteCurator', methods=['POST'])
+def deleteCurator():
+  c_id = request.form['c_id']
+  birthdate = request.form['birthdate']
+  deathdate = request.form['deathdate']
+
+  if c_id=="":
+    return render_template("dont.html")
+  else:
+   g.conn.execute('DELETE FROM directed WHERE c_id=%s', c_id)
+   g.conn.execute('DELETE FROM curators_lived WHERE c_id=%s', c_id)
+   g.conn.execute('DELETE FROM durations WHERE from_=%s AND to_=%s', birthdate, deathdate)
+   return render_template("deleteCuratorDone.html")
+
+# @app.route('/addArtistProfile', methods=['POST'])
+# def addArtistProfile():
+#   a_id = request.form['a_id']
+#   momaurl = request.form['momaurl']
+#   ulanid = request.form['ulanid']
+#   wikidataid = request.form['wikidataid']
+#   viafid = request.form['viafid']
+
+#   if momaurl =="" or a_id=="":
+#      return render_template("dont.html")
+#   else: 
+#     cursor = g.conn.execute(
+#      "SELECT * FROM artistprofiles_isrec p WHERE p.a_id=%s", 
+#      a_id)
+#     profilesExist = []
+#     profilesExist = cursor.fetchall()
+#     if not profilesExist:
+#       g.conn.execute('INSERT INTO artistprofiles_isrec (momaurl, ulanid, wikidataid, viafid, a_id) SELECT %s, %s, %s, %s, %s WHERE NOT EXISTS (SELECT a_id FROM artistprofiles_isrec WHERE a_id=%s)', momaurl, ulanid, wikidataid, viafid, a_id, a_id)
+#     cursor.close()
+#   return render_template("updateDone.html")
 
 @app.route('/login')
 def login():
