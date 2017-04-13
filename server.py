@@ -396,7 +396,7 @@ def deleteExhibitionsInfo():
   startDate = request.form['startDate']
   endDate = request.form['endDate']
 
-  if e_num=="":
+  if e_num=="" or startDate=="" or endDate=="":
     return render_template("dont.html")
   else:
    g.conn.execute('DELETE FROM featured_in WHERE e_num=%s', e_num)
@@ -455,7 +455,7 @@ def addArtist():
   wikidataid = request.form['wikidataid']
   viafid = request.form['viafid']
   
-  if a_id=="" or name=="" or birth=="" or death=="":
+  if a_id=="" or name=="" or birth=="" or death=="" or momaurl=="" or ulanid=="" or wikidataid=="" or viafid=="":
     return render_template("dont.html")
   elif not_date(birth) or not_date(death):
     return render_template("dont.html")
@@ -464,8 +464,7 @@ def addArtist():
   else:
     g.conn.execute('INSERT INTO durations (from_, to_) SELECT %s, %s WHERE NOT EXISTS (SELECT from_, to_ FROM durations d WHERE d.from_=%s AND d.to_=%s)', birth, death, birth, death)
     g.conn.execute('INSERT INTO artists_lived (a_id, name, gender, nationality, from_, to_) SELECT %s, %s, %s, %s, %s, %s WHERE NOT EXISTS (SELECT a_id FROM artists_lived a WHERE a.a_id=%s)', a_id, name, gender, nationality, birth, death, a_id)
-    if momaurl !="" or ulanid !="" or wikidataid !="" or viafid !="":
-      g.conn.execute('INSERT INTO artistprofiles_isrec (momaurl, ulanid, wikidataid, viafid, a_id) SELECT %s, %s, %s, %s, %s WHERE NOT EXISTS (SELECT a_id FROM artistprofiles_isrec WHERE a_id=%s)', momaurl, ulanid, wikidataid, viafid, a_id, a_id)
+    g.conn.execute('INSERT INTO artistprofiles_isrec (momaurl, ulanid, wikidataid, viafid, a_id) SELECT %s, %s, %s, %s, %s WHERE NOT EXISTS (SELECT a_id FROM artistprofiles_isrec WHERE a_id=%s)', momaurl, ulanid, wikidataid, viafid, a_id, a_id)
   return render_template("addArtistDone.html")
 
 # delete artist
@@ -475,7 +474,7 @@ def deleteArtist():
   birthdate = request.form['birthdate']
   deathdate = request.form['deathdate']
 
-  if a_id=="":
+  if a_id=="" or birthdate=="" or deathdate=="":
     return render_template("dont.html")
   else:
    g.conn.execute('DELETE FROM featured_in WHERE a_id=%s', a_id)
@@ -514,7 +513,7 @@ def deleteCurator():
   birthdate = request.form['birthdate']
   deathdate = request.form['deathdate']
 
-  if c_id=="":
+  if c_id=="" or birthdate=="" or deathdate=="":
     return render_template("dont.html")
   else:
    g.conn.execute('DELETE FROM directed WHERE c_id=%s', c_id)
