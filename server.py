@@ -329,6 +329,13 @@ def updateExhibitionsTitle():
   except ValueError:
     return render_template("invalidId.html")
 
+  #check for existing
+  queryResult = g.conn.execute("SELECT e.e_num FROM exhibitions_exhibited e WHERE e.e_num=%s", e_num)
+  existing = queryResult.fetchall()
+  if existing:
+    return render_template("doesnotExist.html")
+  queryResult.close()
+
   if e_num=="" or title=="":
     return render_template("dont.html")
   else:
@@ -358,6 +365,13 @@ def updateExhibitionsFrom():
     endDate = rows[0][0]
   except IndexError:
     return render_template("invalidId.html")
+
+  #check for existing
+  queryResult = g.conn.execute("SELECT e.e_num FROM exhibitions_exhibited e WHERE e.e_num=%s", e_num)
+  existing = queryResult.fetchall()
+  if existing:
+    return render_template("doesnotExist.html")
+  queryResult.close()
 
   if e_num=="" or userStartDate=="":
     return render_template("dont.html")
@@ -395,6 +409,13 @@ def updateExhibitionsTo():
   except IndexError:
     return render_template("invalidId.html")
 
+  #check for existing
+  queryResult = g.conn.execute("SELECT e.e_num FROM exhibitions_exhibited e WHERE e.e_num=%s", e_num)
+  existing = queryResult.fetchall()
+  if existing:
+    return render_template("doesnotExist.html")
+  queryResult.close()
+
   if e_num=="" or userEndDate=="":
     return render_template("dont.html")
   elif not_date(userEndDate):
@@ -414,11 +435,20 @@ def updateExhibitionsUrl():
   e_num = request.form['e_num']
   url = request.form['url']
 
+  #check for valid input
   try:
     intEnum = int(e_num)
   except ValueError:
     return render_template("invalidId.html")
 
+  #check for existing
+  queryResult = g.conn.execute("SELECT e.e_num FROM exhibitions_exhibited e WHERE e.e_num=%s", e_num)
+  existing = queryResult.fetchall()
+  if existing:
+    return render_template("doesnotExist.html")
+  queryResult.close()
+
+  #check if empty
   if e_num=="" or url=="":
     return render_template("dont.html")
   else:
@@ -432,24 +462,35 @@ def updateExhibitionsUrl():
 @app.route('/deleteExhibitionsInfo', methods=['POST'])
 def deleteExhibitionsInfo():
   e_num = request.form['e_num']
-  # startDate = request.form['startDate']
-  # endDate = request.form['endDate']
+
+  #check for existing
+  queryResult = g.conn.execute("SELECT e.e_num FROM exhibitions_exhibited e WHERE e.e_num=%s", e_num)
+  existing = queryResult.fetchall()
+  if existing:
+    return render_template("doesnotExist.html")
+  queryResult.close()
+
+
+  queryResult = g.conn.execute("SELECT from_, to_ FROM exhibitions_exhibited e WHERE e.e_num=%s", e_num)
+  eDates = queryResult.fetchall()
+  startdateObject = eDates[0][0]
+  enddateObject = eDates[0][1]
+  startDate = startdateObject.strftime("%Y-%m-%d")
+  endDate = enddateObject.strftime("%Y-%m-%d")
+  queryResult.close()
 
   try:
     intEnum = int(e_num)
   except ValueError:
     return render_template("invalidId.html")
 
-  # if e_num=="" or startDate=="" or endDate=="":
   if e_num=="":
     return render_template("dont.html")
-  # elif not_date(startDate) or not_date(endDate):
-  #   return render_template("dateError.html")
   else:
    g.conn.execute('DELETE FROM featured_in WHERE e_num=%s', e_num)
    g.conn.execute('DELETE FROM directed WHERE e_num=%s', e_num)
    g.conn.execute('DELETE FROM exhibitions_exhibited WHERE e_num=%s', e_num)
-   # g.conn.execute('DELETE FROM durations WHERE from_=%s AND to_=%s', startDate, endDate)
+   g.conn.execute('DELETE FROM durations WHERE from_=%s AND to_=%s', startDate, endDate)
    return render_template("deleteExhibitionDone.html")
 
 
@@ -483,6 +524,13 @@ def createExhibition():
     startDate = datetime.strptime(userStartDate, "%Y-%m-%d").date()
   except ValueError:
     return render_template("dateError.html")
+
+  #check for existing
+  queryResult = g.conn.execute("SELECT e.e_num FROM exhibitions_exhibited e WHERE e.e_num=%s", e_num)
+  existing = queryResult.fetchall()
+  if existing:
+    return render_template("alreadyExists.html")
+  queryResult.close()
 
   if e_num=="" or title=="" or startDate=="" or endDate=="" or url=="" or curator=="" or artist1=="":
     return render_template("dont.html")
@@ -530,7 +578,7 @@ def addArtist():
   nationality = request.form['nationality']
   try:
       intEnum = int(a_id)
-    except ValueError:
+  except ValueError:
       return render_template("invalidId.html")
   try:
     endDate = datetime.strptime(death, "%Y-%m-%d").date()
@@ -545,6 +593,22 @@ def addArtist():
   wikidataid = request.form['wikidataid']
   viafid = request.form['viafid']
   
+  try: 
+    intEnum = int(ulanid)
+  except ValueError:
+    return render_template("invalidulanid.html")
+  try:
+    intEnum = int(viafid)
+  except ValueError:
+    return render_template("invalidviafid.html")
+
+  #check for existing
+  queryResult = g.conn.execute("SELECT a.a_id FROM artists_lived a WHERE a.a_id=%s", a_id)
+  existing = queryResult.fetchall()
+  if existing:
+    return render_template("alreadyExists.html")
+  queryResult.close()
+
   if a_id=="" or name=="" or birth=="" or death=="" or momaurl=="" or ulanid=="" or wikidataid=="" or viafid=="":
     return render_template("dont.html")
   elif not_date(birth) or not_date(death):
@@ -563,23 +627,38 @@ def addArtist():
 @app.route('/deleteArtist', methods=['POST'])
 def deleteArtist():
   a_id = request.form['a_id']
-  # birthdate = request.form['birthdate']
-  # deathdate = request.form['deathdate']
+
+  #check for existing
+  pdb.set_trace()
+  queryResult = g.conn.execute("SELECT a.a_id FROM artists_lived a WHERE a.a_id=%s", a_id)
+  existing = queryResult.fetchall()
+  if not existing:
+    return render_template("doesnotExist.html")
+  queryResult.close()
+
+  queryResult = g.conn.execute("SELECT from_, to_ FROM artists_lived a WHERE a.a_id=%s", a_id)
+  artistDates = queryResult.fetchall()
+  birthdateObject = artistDates[0][0]
+  deathdateObject = artistDates[0][1]
+  birthdate = birthdateObject.strftime("%Y-%m-%d")
+  deathdate = deathdateObject.strftime("%Y-%m-%d")
+  queryResult.close()
+
   try:
     intAid = int(a_id)
   except ValueError:
     return render_template("invalidId.html")
 
-  # if a_id=="" or birthdate=="" or deathdate=="":
+  #if a_id=="" or birthdate=="" or deathdate=="":
   if a_id=="":
     return render_template("dont.html")
-  # elif not_date(birthdate) or not_date(deathdate):
+  #elif not_date(birthdate) or not_date(deathdate):
   #   return render_template("dateError.html")
   else:
    g.conn.execute('DELETE FROM featured_in WHERE EXISTS (SELECT a_id FROM featured_in f WHERE f.a_id=%s) AND a_id=%s', a_id, a_id)
    g.conn.execute('DELETE FROM artistprofiles_isrec WHERE a_id=%s AND EXISTS (SELECT a_id FROM artistprofiles_isrec a WHERE a.a_id=%s)', a_id, a_id)
    g.conn.execute('DELETE FROM artists_lived WHERE a_id=%s AND EXISTS (SELECT a_id FROM artists_lived a WHERE a.a_id=%s)', a_id, a_id)
-   # g.conn.execute('DELETE FROM durations WHERE from_=%s AND to_=%s AND EXISTS (SELECT from_, to_ FROM artists_lived a WHERE a.from_=%s AND a.to_=%s)', birthdate, deathdate, birthdate, deathdate)
+   g.conn.execute('DELETE FROM durations WHERE from_=%s AND to_=%s AND EXISTS (SELECT from_, to_ FROM artists_lived a WHERE a.from_=%s AND a.to_=%s)', birthdate, deathdate, birthdate, deathdate)
    return render_template("deleteArtistDone.html")
 
 # add curator
@@ -594,9 +673,8 @@ def addCurator():
 
   try:
       intEnum = int(c_id)
-    except ValueError:
+  except ValueError:
       return render_template("invalidId.html")
-
   try:
     endDate = datetime.strptime(death, "%Y-%m-%d").date()
   except ValueError:
@@ -605,6 +683,13 @@ def addCurator():
     startDate = datetime.strptime(birth, "%Y-%m-%d").date()
   except ValueError:
     return render_template("dateError.html")
+
+  #check for existing
+  queryResult = g.conn.execute("SELECT c.c_id FROM curators_lived c WHERE c.c_id=%s", c_id)
+  existing = queryResult.fetchall()
+  if existing:
+    return render_template("alreadyExists.html")
+  queryResult.close()
 
   if c_id=="" or name=="" or birth=="" or death=="":
     return render_template("dont.html")
@@ -623,22 +708,34 @@ def addCurator():
 @app.route('/deleteCurator', methods=['POST'])
 def deleteCurator():
   c_id = request.form['c_id']
-  # birthdate = request.form['birthdate']
-  # deathdate = request.form['deathdate']
+
+  #check for existing
+  queryResult = g.conn.execute("SELECT c.c_id FROM curators_lived c WHERE c.c_id=%s", c_id)
+  existing = queryResult.fetchall()
+  if not existing:
+    return render_template("doesnotExist.html")
+  queryResult.close()
+
+  queryResult = g.conn.execute("SELECT from_, to_ FROM curators_lived c WHERE c.c_id=%s", c_id)
+  curatorDates = queryResult.fetchall()
+  birthdateObject = curatorDates[0][0]
+  deathdateObject = curatorDates[0][1]
+  birthdate = birthdateObject.strftime("%Y-%m-%d")
+  deathdate = deathdateObject.strftime("%Y-%m-%d")
+  queryResult.close()
+
   try:
     intCid = int(c_id)
   except ValueError:
     return render_template("invalidId.html")
 
-  # if c_id=="" or birthdate=="" or deathdate=="":
+
   if c_id=="":
     return render_template("dont.html")
-  # elif not_date(birthdate) or not_date(deathdate):
-  #   return render_template("dateError.html")
   else:
    g.conn.execute('DELETE FROM directed WHERE c_id=%s', c_id)
    g.conn.execute('DELETE FROM curators_lived WHERE c_id=%s', c_id)
-   # g.conn.execute('DELETE FROM durations WHERE from_=%s AND to_=%s', birthdate, deathdate)
+   g.conn.execute('DELETE FROM durations WHERE from_=%s AND to_=%s', birthdate, deathdate)
    return render_template("deleteCuratorDone.html")
 
 # @app.route('/addArtistProfile', methods=['POST'])

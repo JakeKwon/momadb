@@ -9,10 +9,11 @@
 
 <body>
   <h1>MOMAEx</h1>
+  <h2><i>Search results</i></h2>
   <!-- <div>{{data}}</div> -->
 
   <div>
-    {% for n in dataInfo %}
+    {% for n in dataInfo %}<br>
     <div><b>{{n.name}}</b></div>
     <div>curator id: {{n.c_id}}</div>
     <div>gender: {{n.gender}}</div>

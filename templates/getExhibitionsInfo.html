@@ -13,7 +13,7 @@
   <!-- <div>{{data}}</div> -->
 
   <div>
-    {% for n in data %}
+    {% for n in data %}<br>
     <div><b>{{n.title}}</b></div>
     <div>Exhibition #: {{n.e_num}}</div>
     <div>Start Date: {{n.from_}}</div>
@@ -92,7 +92,7 @@
 
 <h2>Delete an exhibition</h2>
 <form method="POST" action="/deleteExhibitionsInfo">
-<p>exhibition #: <input type="text" name="e_num"><br>
+<p>exhibition #: <input type="text" name="e_num">
   <!-- start date: <input type="text" name="startDate"><br> end date: <input type="text" name="endDate"> --><input type="submit" value="deleteExhibitions"></p>
 </form>
 
