@@ -629,7 +629,7 @@ def deleteArtist():
   a_id = request.form['a_id']
 
   #check for existing
-  pdb.set_trace()
+ # pdb.set_trace()
   queryResult = g.conn.execute("SELECT a.a_id FROM artists_lived a WHERE a.a_id=%s", a_id)
   existing = queryResult.fetchall()
   if not existing:
