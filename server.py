@@ -529,6 +529,10 @@ def addArtist():
   gender = request.form['gender']
   nationality = request.form['nationality']
   try:
+      intEnum = int(a_id)
+    except ValueError:
+      return render_template("invalidId.html")
+  try:
     endDate = datetime.strptime(death, "%Y-%m-%d").date()
   except ValueError:
     return render_template("dateError.html")
