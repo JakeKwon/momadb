@@ -14,6 +14,7 @@
   <div>
     {% for n in dataInfo %}
     <div><b>{{n.name}}</b></div>
+    <div>curator id: {{n.c_id}}</div>
     <div>gender: {{n.gender}}</div>
     <div>nationality: {{n.nationality}}</div>
     <div>Birth: {{n.from_}}</div>
@@ -50,8 +51,8 @@
 <h2>delete curator</h2>
 <form method="POST" action="/deleteCurator">
 <p>curator id: <input type="text" name="c_id"><br>
-  birthdate: <input type="text" name="birthdate"><br>
-  deathdate: <input type="text" name="deathdate"><input type="submit" value="deleteCurator"></p>
+  <!-- birthdate: <input type="text" name="birthdate"><br>
+  deathdate: <input type="text" name="deathdate"> --><input type="submit" value="deleteCurator"></p>
 </form>
 
 </body>
