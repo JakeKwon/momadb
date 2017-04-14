@@ -577,9 +577,16 @@ def addArtist():
   gender = request.form['gender']
   nationality = request.form['nationality']
   try:
+<<<<<<< HEAD
       intEnum = int(a_id)
   except ValueError:
       return render_template("invalidId.html")
+=======
+    intEnum = int(a_id)
+  except ValueError:
+    return render_template("invalidId.html")
+  
+>>>>>>> 709535df39a9d12e8af9cc5539bc6428491868cb
   try:
     endDate = datetime.strptime(death, "%Y-%m-%d").date()
   except ValueError:
@@ -672,9 +679,16 @@ def addCurator():
   nationality = request.form['nationality']
 
   try:
+<<<<<<< HEAD
       intEnum = int(c_id)
   except ValueError:
       return render_template("invalidId.html")
+=======
+    intEnum = int(c_id)
+  except ValueError:
+    return render_template("invalidId.html")
+
+>>>>>>> 709535df39a9d12e8af9cc5539bc6428491868cb
   try:
     endDate = datetime.strptime(death, "%Y-%m-%d").date()
   except ValueError:
