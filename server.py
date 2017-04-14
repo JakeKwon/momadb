@@ -603,11 +603,11 @@ def addArtist():
   try: 
     intEnum = int(ulanid)
   except ValueError:
-    return render_template("invalidulanid.html")
+    return render_template("invalidId.html")
   try:
     intEnum = int(viafid)
   except ValueError:
-    return render_template("invalidviafid.html")
+    return render_template("invalidId.html")
 
   #check for existing
   queryResult = g.conn.execute("SELECT a.a_id FROM artists_lived a WHERE a.a_id=%s", a_id)
