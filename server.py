@@ -466,10 +466,9 @@ def deleteExhibitionsInfo():
   #check for existing
   queryResult = g.conn.execute("SELECT e.e_num FROM exhibitions_exhibited e WHERE e.e_num=%s", e_num)
   existing = queryResult.fetchall()
-  if existing:
+  if not existing:
     return render_template("doesnotExist.html")
   queryResult.close()
-
 
   queryResult = g.conn.execute("SELECT from_, to_ FROM exhibitions_exhibited e WHERE e.e_num=%s", e_num)
   eDates = queryResult.fetchall()
