@@ -515,6 +515,10 @@ def createExhibition():
     intEnum = int(curator)
   except ValueError:
     return render_template("invalidId.html")
+  try:
+    intEnum = int(artist1)
+  except ValueError:
+    return render_template("invalidID.html")
 
   try:
     endDate = datetime.strptime(userEndDate, "%Y-%m-%d").date()
@@ -576,17 +580,11 @@ def addArtist():
   death = request.form['death']
   gender = request.form['gender']
   nationality = request.form['nationality']
+  
   try:
-<<<<<<< HEAD
       intEnum = int(a_id)
   except ValueError:
       return render_template("invalidId.html")
-=======
-    intEnum = int(a_id)
-  except ValueError:
-    return render_template("invalidId.html")
-  
->>>>>>> 709535df39a9d12e8af9cc5539bc6428491868cb
   try:
     endDate = datetime.strptime(death, "%Y-%m-%d").date()
   except ValueError:
@@ -595,6 +593,8 @@ def addArtist():
     startDate = datetime.strptime(birth, "%Y-%m-%d").date()
   except ValueError:
     return render_template("dateError.html")
+
+
   momaurl = request.form['momaurl']
   ulanid = request.form['ulanid']
   wikidataid = request.form['wikidataid']
@@ -679,16 +679,9 @@ def addCurator():
   nationality = request.form['nationality']
 
   try:
-<<<<<<< HEAD
       intEnum = int(c_id)
   except ValueError:
       return render_template("invalidId.html")
-=======
-    intEnum = int(c_id)
-  except ValueError:
-    return render_template("invalidId.html")
-
->>>>>>> 709535df39a9d12e8af9cc5539bc6428491868cb
   try:
     endDate = datetime.strptime(death, "%Y-%m-%d").date()
   except ValueError:
